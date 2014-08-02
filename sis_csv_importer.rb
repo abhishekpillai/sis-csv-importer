@@ -11,6 +11,7 @@
 #     - Column order in the CSV is unspecified, one user csv may be ordered differently than the next.
 
 require 'csv'
+require 'time'
 
 class SisCSVImporter
   def initialize(path_to_csv_dir)
@@ -44,7 +45,7 @@ class SisCSVImporter
   end
 
   def write_to_file(courses_and_users)
-    File.open("active_courses_and_enrolled_users.txt", "w") do |f|
+    File.open("active_courses_and_enrolled_users#{Time.now.iso8601}.txt", "w") do |f|
       courses_and_users.each do |course, users|
         f << "Active Course: "
         f << course
@@ -91,6 +92,8 @@ class SisCSVImporter
       if active?(row)
         @active_enrollments[row["course_id"]] ||= []
         @active_enrollments[row["course_id"]] << row["user_id"]
+      elsif @active_enrollments[row["course_id"]]
+        @active_enrollments[row["course_id"]].delete(row["user_id"])
       end
     end
   end
