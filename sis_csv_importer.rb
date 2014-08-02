@@ -13,66 +13,68 @@
 require 'csv'
 
 class SisCSVImporter
-  class << self
-    def run(path_to_csv_dir)
-      @active_courses = {}
-      @active_users = {}
-      @active_enrollments = {}
-      parse_csvs(path_to_csv_dir)
-      determine_active_courses_and_enrolled_users
-    end
+  def initialize(path_to_csv_dir)
+    @active_courses = {}
+    @active_users = {}
+    @active_enrollments = {}
+    @path_to_csv_dir = path_to_csv_dir
+  end
 
+  def run
+    active_courses_and_enrolled_users = parse_csvs
+    write_to_file(active_courses_and_enrolled_users)
+  end
 
-    def parse_csvs(path_to_csv_dir)
-      csvs_to_parse = Dir.entries(path_to_csv_dir).select { |f| !File.directory?(f) }
-      csvs_to_parse.each do |file_path|
-        parsed_csv = CSV.read(path_to_csv_dir + "/" + file_path, :headers => true)
-        csv_type = determine_csv_type(parsed_csv.headers)
-        parsed_csv.each do |row|
-          case csv_type
-          when :course
-            @active_courses[row["course_id"]] = row["course_name"] if active?(row)
-          when :student
-            @active_users[row["user_id"]] = row["user_name"] if active?(row)
-          when :enrollment
-           if active?(row)
-             @active_enrollments[row["course_id"]] ||= []
-             @active_enrollments[row["course_id"]] << row["user_id"]
-           end
-          end
+  def parse_csvs
+    csvs_to_parse = Dir.entries(@path_to_csv_dir).select { |f| !File.directory?(f) }
+    csvs_to_parse.each do |file_path|
+      parsed_csv = CSV.read(@path_to_csv_dir + "/" + file_path, :headers => true)
+      csv_type = determine_csv_type(parsed_csv.headers)
+      parsed_csv.each do |row|
+        case csv_type
+        when :course
+          @active_courses[row["course_id"]] = row["course_name"] if active?(row)
+        when :student
+          @active_users[row["user_id"]] = row["user_name"] if active?(row)
+        when :enrollment
+         if active?(row)
+           @active_enrollments[row["course_id"]] ||= []
+           @active_enrollments[row["course_id"]] << row["user_id"]
+         end
         end
       end
     end
+    determine_active_courses_and_enrolled_users
+  end
 
-    def determine_active_courses_and_enrolled_users
-      {}.tap do |active_courses_to_enrolled_users|
-        @active_courses.each do |course_id, course_name|
-          active_courses_to_enrolled_users[course_name] ||= []
-          enrolled_users = @active_enrollments[course_id] || []
-          enrolled_users.each do |user_id|
-            active_courses_to_enrolled_users[course_name] << @active_users[user_id]
-          end
+  def determine_active_courses_and_enrolled_users
+    {}.tap do |active_courses_to_enrolled_users|
+      @active_courses.each do |course_id, course_name|
+        active_courses_to_enrolled_users[course_name] ||= []
+        enrolled_users = @active_enrollments[course_id] || []
+        enrolled_users.each do |user_id|
+          active_courses_to_enrolled_users[course_name] << @active_users[user_id]
         end
       end
     end
+  end
 
-    def determine_csv_type(headers)
-      sorted_headers = headers.sort
-      student_headers = %w(user_id user_name state).sort
-      course_headers = %w(course_id course_name state).sort
+  def determine_csv_type(headers)
+    sorted_headers = headers.sort
+    student_headers = %w(user_id user_name state).sort
+    course_headers = %w(course_id course_name state).sort
 
-      if student_headers == sorted_headers
-        :student
-      elsif course_headers == sorted_headers
-        :course
-      else
-        :enrollment
-      end
+    if student_headers == sorted_headers
+      :student
+    elsif course_headers == sorted_headers
+      :course
+    else
+      :enrollment
     end
+  end
 
-    def active?(row)
-      row["state"] == "active"
-    end
+  def active?(row)
+    row["state"] == "active"
   end
 end
 
