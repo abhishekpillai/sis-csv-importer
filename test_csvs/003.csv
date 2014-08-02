@@ -2,3 +2,7 @@ course_id,user_id,state
 C424294,U531649,active
 C424294,U346561,active
 C424294,U346561,active
+C424294,U123456,active
+C123456,U346561,active
+C732380,U531649,active
+C732380,U531649,deleted

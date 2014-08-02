@@ -5,7 +5,8 @@ describe SisCSVImporter do
     it "reads csvs from a given directory and returns a hash with correct results" do
       correct_result = {
         "Suicide" => [],
-        "Chemistry" => ["Noah Thomas", "Chloe Wood"]
+        "Chemistry" => ["Noah Thomas", "Chloe Wood"],
+        "Abortion, law" => []
       }
       expect(SisCSVImporter.new("./test_csvs").parse_csvs).to eq(correct_result)
     end

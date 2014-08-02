@@ -106,7 +106,9 @@ class SisCSVImporter
         active_courses_to_enrolled_users[course_name] ||= []
         enrolled_users = @active_enrollments[course_id] || []
         enrolled_users.each do |user_id|
-          active_courses_to_enrolled_users[course_name] << @active_users[user_id]
+          if @active_users[user_id]
+            active_courses_to_enrolled_users[course_name] << @active_users[user_id]
+          end
         end
       end
     end
