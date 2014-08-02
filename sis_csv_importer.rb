@@ -14,14 +14,40 @@ require 'csv'
 
 class SisCSVImporter
   def self.run(path_to_csv_dir)
-    active_courses_to_students = {}
+    active_courses = {}
+    active_users = {}
+    active_courses_to_enrolled_users = {}
     csvs_to_parse = Dir.entries(path_to_csv_dir).select { |f| !File.directory?(f) }
     csvs_to_parse.each do |file_path|
       CSV.foreach(path_to_csv_dir + "/" + file_path, :headers => true) do |row|
-        active_courses_to_students[row["course_name"]] = [] if row["state"] == "active"
+        csv_type = determine_csv_type(row.headers)
+        case csv_type
+        when :course
+          active_courses[row["course_id"]] = row if row["state"] == "active"
+        when :student
+          active_users[row["user_id"]] << row.user_name if row["state"] == "active"
+        when :enrollment
+          course = active_courses[row["course_id"]]["course_name"]
+
+        end
       end
     end
-    active_courses_to_students
+    active_courses_to_enrolled_users
+  end
+
+  def self.determine_csv_type(headers)
+    sorted_headers = headers.sort
+    student_headers = %w(user_id user_name state)
+    course_headers = %w(course_id course_name state)
+    #enrollment_headers = %w(user_id course_id state)
+
+    if student_headers == sorted_headers
+      :student
+    elsif course_headers == sorted_headers
+      :course
+    else
+      :enrollment
+    end
   end
 end
 
