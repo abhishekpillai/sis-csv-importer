@@ -11,4 +11,6 @@ After you've done that, please run `rspec sis_csv_importer_spec.rb`
 
 # How to run the script
 
-`ruby run_importer.rb path-to-csv-dir`
+`ruby run_importer.rb full-path-to-csv-dir`
+
+On successful completion, there should be a txt file created at the root directory of the project with the list of active course names and active enrolled user names
