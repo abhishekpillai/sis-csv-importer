@@ -23,6 +23,7 @@ class SisCSVImporter
   def run
     active_courses_and_enrolled_users = parse_csvs
     write_to_file(active_courses_and_enrolled_users)
+    "complete"
   end
 
   def parse_csvs
@@ -45,6 +46,19 @@ class SisCSVImporter
       end
     end
     determine_active_courses_and_enrolled_users
+  end
+
+  def write_to_file(courses_and_users)
+    File.open("active_courses_and_enrolled_users.txt", "w") do |f|
+      courses_and_users.each do |course, users|
+        f << "Active Course: "
+        f << course
+        f << "\n\n"
+        f << "Active Enrolled Users:\n"
+        f << users.join("\n")
+        f << "\n\n\n"
+      end
+    end
   end
 
   def determine_active_courses_and_enrolled_users
