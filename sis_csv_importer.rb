@@ -16,7 +16,7 @@ class SisCSVImporter
   def self.run(path_to_csv_dir)
     active_courses = {}
     active_users = {}
-    active_courses_to_enrolled_users = {}
+    active_enrollments = {}
     csvs_to_parse = Dir.entries(path_to_csv_dir).select { |f| !File.directory?(f) }
     csvs_to_parse.each do |file_path|
       CSV.foreach(path_to_csv_dir + "/" + file_path, :headers => true) do |row|
@@ -25,13 +25,14 @@ class SisCSVImporter
         when :course
           active_courses[row["course_id"]] = row if row["state"] == "active"
         when :student
-          active_users[row["user_id"]] << row.user_name if row["state"] == "active"
+          active_users[row["user_id"]] << row["user_name"] if row["state"] == "active"
         when :enrollment
-          course = active_courses[row["course_id"]]["course_name"]
-
+          active_enrollments[row["course_id"]] = row["user_id"] if row["state"] == "active"
         end
       end
     end
+    active_courses_to_enrolled_users = {}
+
     active_courses_to_enrolled_users
   end
 
