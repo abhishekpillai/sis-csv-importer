@@ -19,8 +19,9 @@ class SisCSVImporter
     active_enrollments = {}
     csvs_to_parse = Dir.entries(path_to_csv_dir).select { |f| !File.directory?(f) }
     csvs_to_parse.each do |file_path|
-      CSV.foreach(path_to_csv_dir + "/" + file_path, :headers => true) do |row|
-        csv_type = determine_csv_type(row.headers)
+      parsed_csv = CSV.read(path_to_csv_dir + "/" + file_path, :headers => true)
+      csv_type = determine_csv_type(parsed_csv.headers)
+      parsed_csv.each do |row|
         case csv_type
         when :course
           active_courses[row["course_id"]] = row["course_name"] if row["state"] == "active"
@@ -34,10 +35,12 @@ class SisCSVImporter
         end
       end
     end
+
     active_courses_to_enrolled_users = {}
     active_courses.each do |course_id, course_name|
       active_courses_to_enrolled_users[course_name] ||= []
-      active_enrollments[course_id].each do |user_id|
+      enrolled_users = active_enrollments[course_id] || []
+      enrolled_users.each do |user_id|
         active_courses_to_enrolled_users[course_name] << active_users[user_id]
       end
     end
@@ -50,9 +53,9 @@ class SisCSVImporter
     course_headers = %w(course_id course_name state)
     #enrollment_headers = %w(user_id course_id state)
 
-    if student_headers == sorted_headers
+    if student_headers.sort == sorted_headers
       :student
-    elsif course_headers == sorted_headers
+    elsif course_headers.sort == sorted_headers
       :course
     else
       :enrollment
