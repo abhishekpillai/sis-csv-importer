@@ -61,12 +61,13 @@ class SisCSVImporter
     sorted_headers = headers.sort
     student_headers = %w(user_id user_name state).sort
     course_headers = %w(course_id course_name state).sort
+    enrollment_headers = %w(course_id user_id state).sort
 
     if student_headers == sorted_headers
       :student
     elsif course_headers == sorted_headers
       :course
-    else
+    elsif enrollment_headers == sorted_headers
       :enrollment
     end
   end
@@ -92,6 +93,7 @@ class SisCSVImporter
       if active?(row)
         @active_enrollments[row["course_id"]] ||= []
         @active_enrollments[row["course_id"]] << row["user_id"]
+        @active_enrollments[row["course_id"]].uniq!
       elsif @active_enrollments[row["course_id"]]
         @active_enrollments[row["course_id"]].delete(row["user_id"])
       end
