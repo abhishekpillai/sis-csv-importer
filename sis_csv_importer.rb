@@ -31,18 +31,13 @@ class SisCSVImporter
     csvs_to_parse.each do |file_path|
       parsed_csv = CSV.read(@path_to_csv_dir + "/" + file_path, :headers => true)
       csv_type = determine_csv_type(parsed_csv.headers)
-      parsed_csv.each do |row|
-        case csv_type
-        when :course
-          @active_courses[row["course_id"]] = row["course_name"] if active?(row)
-        when :student
-          @active_users[row["user_id"]] = row["user_name"] if active?(row)
-        when :enrollment
-         if active?(row)
-           @active_enrollments[row["course_id"]] ||= []
-           @active_enrollments[row["course_id"]] << row["user_id"]
-         end
-        end
+      case csv_type
+      when :course
+        parse_courses(parsed_csv)
+      when :student
+        parse_students(parsed_csv)
+      when :enrollment
+        parse_enrollments(parsed_csv)
       end
     end
     determine_active_courses_and_enrolled_users
@@ -57,18 +52,6 @@ class SisCSVImporter
         f << "Active Enrolled Users:\n"
         f << users.join("\n")
         f << "\n\n\n"
-      end
-    end
-  end
-
-  def determine_active_courses_and_enrolled_users
-    {}.tap do |active_courses_to_enrolled_users|
-      @active_courses.each do |course_id, course_name|
-        active_courses_to_enrolled_users[course_name] ||= []
-        enrolled_users = @active_enrollments[course_id] || []
-        enrolled_users.each do |user_id|
-          active_courses_to_enrolled_users[course_name] << @active_users[user_id]
-        end
       end
     end
   end
@@ -89,6 +72,39 @@ class SisCSVImporter
 
   def active?(row)
     row["state"] == "active"
+  end
+
+  def parse_courses(csv)
+    csv.each do |row|
+      @active_courses[row["course_id"]] = row["course_name"] if active?(row)
+    end
+  end
+
+  def parse_students(csv)
+    csv.each do |row|
+      @active_users[row["user_id"]] = row["user_name"] if active?(row)
+    end
+  end
+
+  def parse_enrollments(csv)
+    csv.each do |row|
+      if active?(row)
+        @active_enrollments[row["course_id"]] ||= []
+        @active_enrollments[row["course_id"]] << row["user_id"]
+      end
+    end
+  end
+
+  def determine_active_courses_and_enrolled_users
+    {}.tap do |active_courses_to_enrolled_users|
+      @active_courses.each do |course_id, course_name|
+        active_courses_to_enrolled_users[course_name] ||= []
+        enrolled_users = @active_enrollments[course_id] || []
+        enrolled_users.each do |user_id|
+          active_courses_to_enrolled_users[course_name] << @active_users[user_id]
+        end
+      end
+    end
   end
 end
 
