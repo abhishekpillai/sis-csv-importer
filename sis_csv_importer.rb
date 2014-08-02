@@ -23,16 +23,24 @@ class SisCSVImporter
         csv_type = determine_csv_type(row.headers)
         case csv_type
         when :course
-          active_courses[row["course_id"]] = row if row["state"] == "active"
+          active_courses[row["course_id"]] = row["course_name"] if row["state"] == "active"
         when :student
-          active_users[row["user_id"]] << row["user_name"] if row["state"] == "active"
+          active_users[row["user_id"]] = row["user_name"] if row["state"] == "active"
         when :enrollment
-          active_enrollments[row["course_id"]] = row["user_id"] if row["state"] == "active"
+         if row["state"] == "active"
+           active_enrollments[row["course_id"]] ||= []
+           active_enrollments[row["course_id"]] << row["user_id"]
+         end
         end
       end
     end
     active_courses_to_enrolled_users = {}
-
+    active_courses.each do |course_id, course_name|
+      active_courses_to_enrolled_users[course_name] ||= []
+      active_enrollments[course_id].each do |user_id|
+        active_courses_to_enrolled_users[course_name] << active_users[user_id]
+      end
+    end
     active_courses_to_enrolled_users
   end
 
