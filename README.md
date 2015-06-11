@@ -1,7 +1,7 @@
 # Environment
 
-If you have rvm, when you cd into the directory, you should be automatically placed in ruby-1.9.3 and a new empty gemset for this coding exercise.
-If you don't have rvm, this code sample was written to work on ruby-1.9.3.
+If you have rbenv, when you cd into the directory, you should be automatically placed in ruby 2.2.2 for this coding exercise.
+If you don't have rbenv, this code sample was written to work on ruby 2.2.2
 
 # Tests
 
