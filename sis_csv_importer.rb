@@ -62,15 +62,13 @@ class SisCSVImporter
 
   def determine_csv_type(headers)
     sorted_headers = headers.sort
-    student_headers = %w(user_id user_name state).sort
-    course_headers = %w(course_id course_name state).sort
-    enrollment_headers = %w(course_id user_id state).sort
 
-    if student_headers == sorted_headers
+    case sorted_headers
+    when Parsers::Student::HEADERS
       :student
-    elsif course_headers == sorted_headers
+    when Parsers::Course::HEADERS
       :course
-    elsif enrollment_headers == sorted_headers
+    when Parsers::Enrollment::HEADERS
       :enrollment
     end
   end

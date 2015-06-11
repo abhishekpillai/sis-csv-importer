@@ -2,6 +2,8 @@ require 'base_parser'
 
 module Parsers
   class Enrollment < BaseParser
+    HEADERS = %w(course_id user_id state).sort
+
     def parse_active
       @csv.each do |row|
         if active?(row)
