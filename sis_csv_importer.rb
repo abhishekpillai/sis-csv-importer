@@ -12,6 +12,9 @@
 
 require 'csv'
 require 'time'
+require 'parsers/course'
+require 'parsers/student'
+require 'parsers/enrollment'
 
 class SisCSVImporter
   def initialize(path_to_csv_dir)
@@ -34,11 +37,11 @@ class SisCSVImporter
       csv_type = determine_csv_type(parsed_csv.headers)
       case csv_type
       when :course
-        parse_courses(parsed_csv)
+        @active_courses = parse_courses(parsed_csv)
       when :student
-        parse_students(parsed_csv)
+        @active_users = parse_students(parsed_csv)
       when :enrollment
-        parse_enrollments(parsed_csv)
+        @active_enrollments = parse_enrollments(parsed_csv)
       end
     end
     determine_active_courses_and_enrolled_users
@@ -72,32 +75,22 @@ class SisCSVImporter
     end
   end
 
-  def active?(row)
-    row["state"] == "active"
-  end
-
   def parse_courses(csv)
-    csv.each do |row|
-      @active_courses[row["course_id"]] = row["course_name"] if active?(row)
-    end
+    parser = Parsers::Course.new(csv)
+    parser.parse_active
+    parser.active
   end
 
   def parse_students(csv)
-    csv.each do |row|
-      @active_users[row["user_id"]] = row["user_name"] if active?(row)
-    end
+    parser = Parsers::Student.new(csv)
+    parser.parse_active
+    parser.active
   end
 
   def parse_enrollments(csv)
-    csv.each do |row|
-      if active?(row)
-        @active_enrollments[row["course_id"]] ||= []
-        @active_enrollments[row["course_id"]] << row["user_id"]
-        @active_enrollments[row["course_id"]].uniq!
-      elsif @active_enrollments[row["course_id"]]
-        @active_enrollments[row["course_id"]].delete(row["user_id"])
-      end
-    end
+    parser = Parsers::Enrollment.new(csv)
+    parser.parse_active
+    parser.active
   end
 
   def determine_active_courses_and_enrolled_users
