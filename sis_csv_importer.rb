@@ -34,18 +34,13 @@ class SisCSVImporter
     csvs_to_parse = Dir.entries(@path_to_csv_dir).select { |f| !File.directory?(f) }
     csvs_to_parse.each do |file_path|
       parsed_csv = CSV.read(@path_to_csv_dir + "/" + file_path, :headers => true)
-      csv_type = determine_csv_type(parsed_csv.headers)
-      case csv_type
-      when :course
-        @active_courses = parse_courses(parsed_csv)
-      when :student
-        @active_users = parse_students(parsed_csv)
-      when :enrollment
-        @active_enrollments = parse_enrollments(parsed_csv)
-      end
+      parse_csv_by_type(parsed_csv)
     end
     determine_active_courses_and_enrolled_users
   end
+
+
+  private
 
   def write_to_file(courses_and_users)
     File.open("active_courses_and_enrolled_users#{Time.now.iso8601}.txt", "w") do |f|
@@ -60,16 +55,16 @@ class SisCSVImporter
     end
   end
 
-  def determine_csv_type(headers)
-    sorted_headers = headers.sort
+  def parse_csv_by_type(parsed_csv)
+    sorted_headers = parsed_csv.headers.sort
 
     case sorted_headers
     when Parsers::Student::HEADERS
-      :student
+      @active_users = parse_students(parsed_csv)
     when Parsers::Course::HEADERS
-      :course
+      @active_courses = parse_courses(parsed_csv)
     when Parsers::Enrollment::HEADERS
-      :enrollment
+      @active_enrollments = parse_enrollments(parsed_csv)
     end
   end
 
