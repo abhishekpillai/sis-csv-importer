@@ -60,28 +60,16 @@ class SisCSVImporter
 
     case sorted_headers
     when Parsers::Student::HEADERS
-      @active_users = parse_students(parsed_csv)
+      @active_users = parse(Parsers::Student, parsed_csv)
     when Parsers::Course::HEADERS
-      @active_courses = parse_courses(parsed_csv)
+      @active_courses = parse(Parsers::Course, parsed_csv)
     when Parsers::Enrollment::HEADERS
-      @active_enrollments = parse_enrollments(parsed_csv)
+      @active_enrollments = parse(Parsers::Enrollment, parsed_csv)
     end
   end
 
-  def parse_courses(csv)
-    parser = Parsers::Course.new(csv)
-    parser.parse_active
-    parser.active
-  end
-
-  def parse_students(csv)
-    parser = Parsers::Student.new(csv)
-    parser.parse_active
-    parser.active
-  end
-
-  def parse_enrollments(csv)
-    parser = Parsers::Enrollment.new(csv)
+  def parse(parser_type, csv)
+    parser = parser_type.new(csv)
     parser.parse_active
     parser.active
   end
