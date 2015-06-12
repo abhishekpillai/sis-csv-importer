@@ -1,3 +1,5 @@
+# CODE SAMPLE
+
 # The Problem
 Schools use many different Student Information Systems, some commercial, some homegrown, some are even just an excel spreadsheet. Write a script that will take a CSV and parse a school's data.
 
